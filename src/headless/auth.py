@@ -1,5 +1,6 @@
 from typing import Dict
 import re
+from urllib.parse import urlparse, parse_qs
 
 from playwright.sync_api import BrowserContext, expect, Request
 
@@ -21,18 +22,25 @@ class Login:
             and "cookie" not in self.headless.headers
         ):
             self.__set_auth(request.all_headers())
+            self.__set_params(request.url)
 
-    def __set_params(self, params: Dict[str, str]):
+    def __set_params(self, url: str):
         """
         Set's the required auth parameters for WebAPI requests.
 
         Parameters
         ----------
-        params : Dict[str, str]
-            Params dict to pull auth params from.
+        url : str
+            The url to pull the params from
         """
-        # TODO: Implement me, I need called in __handle_request()
-        pass
+
+        params = ["ss_v"]
+
+        parsed = urlparse(url)
+        for param in params:
+            # We do not want to override a user defined param from instantiation, so if it already exists, leave it be.
+            if param not in self.headless.params:
+                self.headless.params[param] = parse_qs(parsed.query)[param][0]
 
     def __set_auth(self, headers: Dict[str, str]):
         """

@@ -32,6 +32,8 @@ class Headless:
     ):
         # TODO: Set Smartsheet-Change-Agent header
 
+        params.update(**self.params)
+
         req = requests.Request(
             operation,
             url=self.base_url,

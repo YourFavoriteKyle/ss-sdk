@@ -12,7 +12,7 @@ class Workflow:
             This is not user friendly to obtain.
         """
 
-        self.headless.request(
+        return self.headless.request(
             "POST",
             {"formName": "webop", "formAction": "GetWorkflowsBySheet"},
             {"sheetId": sheetId},
