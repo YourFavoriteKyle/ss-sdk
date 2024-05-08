@@ -1,0 +1,3 @@
+; Adjusted line length to match Black formatter
+[flake8]
+max-line-length = 88-120

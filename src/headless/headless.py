@@ -1,37 +1,52 @@
-from requests import request, PreparedRequest
+import requests
+import logging
+
+from playwright.sync_api import Browser
 
 from .auth import Login
 from .workflow import Workflow
 
 
 class Headless:
-    def __init__(self, driver):
-        self.chrome = driver.chrome
+    def __init__(self, manager):
+        self.manager = manager
+        self.chrome: Browser = manager.chrome
         self.base_url = "https://app.smartsheet.com/b/home"
-        self.headers = {"Content-Type": "application/json", "Accept": "application/json", "User-Agent": ""}
+        self.headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "",
+        }
+        # NOTE: ss_v param is required for every request, but change frequently. Set in auth module.
+        self.params = {"to": "68000"}
 
         self.login = Login(self)
         self.workflows = Workflow(self)
-    
-    def __add_query_params(self, params: dict):
 
-        # These seem to be in every frontend request and seem to be required.
-        # They are set in the frontend as a default but can be overriden.
-        if "to" not in params:
-            params["to"] = "68000"
-        # FIXME: This version number changes frequently, I think it is browser version? Need to determine a way to check for this update.
-        # It SEEMS to be errorCode -14 is returned when this value is incorrect.
-        if "ss_v" not in params:
-            params["ss_v"] = "307.0.0"
+    def request(
+        self,
+        operation: str,
+        params: dict[str, str | int | bool],
+        json: dict = None,
+        **kwargs,
+    ):
+        # TODO: Set Smartsheet-Change-Agent header
 
-        query_params = "?" + "&".join(f"{k}={v}" for k, v in params.items())
+        req = requests.Request(
+            operation,
+            url=self.base_url,
+            params=params,
+            json=json,
+            headers=self.headers,
+            **kwargs,
+        )
 
-        return query_params
-        
-    def request(self, operation: str, params: dict, data: dict = None):
+        prepped = req.prepare()
 
-        prepped = {"method": operation, "url": f"{self.base_url}{self.__add_query_params(params)}", "json": data, "headers": self.headers}
-        r = request(**prepped)
-        print(r.request.__dict__)
-        print()
-        print(r.json())
+        r = requests.Session().send(prepped)
+
+        if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+            # TODO: Log prepped request and repsonse
+            pass
+
+        return r.json()
