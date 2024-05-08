@@ -1,6 +1,8 @@
 import subprocess
 import os
 
+from smartsheet import Smartsheet as SSClient
+
 from playwright.sync_api import sync_playwright, PlaywrightContextManager
 
 from src.headless.headless import Headless
@@ -62,3 +64,4 @@ class Smartsheet(PlaywrightContextManager):
         self.chrome = self.pcm.chromium.launch(headless=False, timeout=10000)
 
         self.headless = Headless(self)
+        self.api: SSClient = SSClient(access_token=self.access_token)

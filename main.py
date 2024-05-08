@@ -1,4 +1,4 @@
-from src.smartsheet import Smartsheet
+from src.smartsheet_sdk import Smartsheet
 
 
 def main():
