@@ -1,5 +1,6 @@
 import requests
 import logging
+from typing import Literal
 
 from playwright.sync_api import Browser
 
@@ -25,7 +26,7 @@ class Headless:
 
     def request(
         self,
-        operation: str,
+        operation: Literal["GET", "POST", "PUT", "DELETE"],
         params: dict[str, str | int | bool],
         json: dict = None,
         **kwargs,
@@ -52,3 +53,29 @@ class Headless:
             pass
 
         return r.json()
+
+    def gateway_request(
+        self,
+        operation: Literal["GET", "POST", "PUT", "DELETE"],
+        path: str,
+        service: Literal["WEB2RAPI", "DISCUSSION"],
+    ):
+        """
+        Sends a gateway request to Smartsheet.
+
+        Note
+        ----
+        Gateway requests are often used to obtain metadata about a specified resource within Smartsheet.
+
+        Parameters
+        ----------
+        operation : Literal["GET", "POST", "PUT", "DELETE"]
+            The operation to perform. Usually "GET".
+        path : str
+            The path to the resource. This one
+        """
+        return self.request(
+            "POST",
+            {"formName": "webop", "formAction": "SendGatewayRequest"},
+            json={"service": service, "path": path, "operation": operation},
+        )
