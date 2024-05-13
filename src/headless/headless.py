@@ -60,7 +60,7 @@ class Headless:
         operation: Literal["GET", "POST", "PUT", "DELETE"],
         path: str,
         service: Literal["WEB2RAPI", "DISCUSSION"],
-    ):
+    ) -> object:
         """
         Sends a gateway request to Smartsheet.
 
@@ -74,11 +74,37 @@ class Headless:
             The operation to perform. Usually "GET".
         path : str
             The path to the resource. This one
+
+        Returns
+        -------
+        object : {
+            data: {
+                gatewayResponse: {
+                    body: {
+                        id: str,
+                        name: str,
+                        type: str
+                        },
+                    statusCode: int
+                    },
+                errorCode: int,
+                errors: [],
+                isLicensingError: bool,
+                serverStatus: bool,
+                serverStatusText: str
+                }
+            }
         """
         return self.request(
             "POST",
             {"formName": "webop", "formAction": "SendGatewayRequest"},
-            json={"service": service, "path": path, "operation": operation},
+            json={
+                "gatewayRequest": {
+                    "method": operation,
+                    "path": path,
+                    "service": service,
+                }
+            },
         )
 
     def get_url_details(
