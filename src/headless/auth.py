@@ -1,6 +1,5 @@
 from typing import Dict
 import re
-from urllib.parse import urlparse, parse_qs
 
 from playwright.sync_api import BrowserContext, expect, Request
 
@@ -36,11 +35,11 @@ class Login:
 
         params = ["ss_v"]
 
-        parsed = urlparse(url)
+        parsed = self.headless.get_url_details(url)
         for param in params:
             # We do not want to override a user defined param from instantiation, so if it already exists, leave it be.
             if param not in self.headless.params:
-                self.headless.params[param] = parse_qs(parsed.query)[param][0]
+                self.headless.params[param] = parsed["params"][param]
 
     def __set_auth(self, headers: Dict[str, str]):
         """

@@ -1,6 +1,7 @@
 import requests
 import logging
-from typing import Literal
+from typing import Literal, Dict
+from urllib.parse import urlparse, parse_qs
 
 from playwright.sync_api import Browser
 
@@ -79,3 +80,28 @@ class Headless:
             {"formName": "webop", "formAction": "SendGatewayRequest"},
             json={"service": service, "path": path, "operation": operation},
         )
+
+    def get_url_details(
+        self, permalink: str
+    ) -> Dict["paths" : list[str], "params" : Dict[str, str]]:
+        # TODO: Parse url to pull out the baseURL and return paths in array as well as parameters in array of tuples
+        """
+        Gets details from a Smartsheet URL.
+
+        Parameters
+        ----------
+        permalink : str
+            The permalin link of the sheet, including the domain
+
+        Returns
+        -------
+        dict : {paths: list[str], params: Dict[str, str]}
+        """
+
+        url = urlparse(permalink)
+
+        # Remove the empty path the preceeding slash creates via array slicing (first element)
+        paths = url.path.split("/")[1:]
+        params = parse_qs(url.query)
+
+        return {"paths": paths, "params": params}
