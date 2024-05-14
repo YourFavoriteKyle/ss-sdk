@@ -8,6 +8,7 @@ from playwright.sync_api import Browser
 
 from .auth import Login
 from .workflow import Workflow
+from .sheet import Sheet
 
 
 class Headless:
@@ -25,13 +26,14 @@ class Headless:
 
         self.login = Login(self)
         self.workflows = Workflow(self)
+        self.sheets = Sheet(self)
 
     def request(
         self,
         operation: Literal["GET", "POST", "PUT", "DELETE"],
-        params: dict[str, str | int | bool],
+        params: dict[str, str | int | bool] = {},
         json: dict = None,
-        headers: dict = None,
+        headers: dict = {},
         **kwargs,
     ) -> Response:
         # TODO: Set Smartsheet-Change-Agent header
@@ -62,9 +64,10 @@ class Headless:
 
     def gateway_request(
         self,
-        operation: Literal["GET", "POST", "PUT", "DELETE"],
-        path: str,
-        service: Literal["WEB2RAPI", "DISCUSSION"],
+        operation: Literal["GET", "POST", "PUT", "DELETE"] = "GET",
+        path: str = None,
+        service: Literal["WEB2RAPI", "DISCUSSION"] = "WEB2RAPI",
+        json: dict = None,
     ) -> Response:
         """
         Sends a gateway request to Smartsheet.
@@ -100,17 +103,25 @@ class Headless:
                 }
             }
         """
-        return self.request(
-            "POST",
-            {"formName": "webop", "formAction": "SendGatewayRequest"},
-            json={
-                "gatewayRequest": {
-                    "method": operation,
-                    "path": path,
-                    "service": service,
-                }
-            },
-        )
+
+        if json is None:
+            return self.request(
+                "POST",
+                {"formName": "webop", "formAction": "SendGatewayRequest"},
+                json={
+                    "gatewayRequest": {
+                        "method": operation,
+                        "path": path,
+                        "service": service,
+                    }
+                },
+            )
+        else:
+            return self.request(
+                "POST",
+                {"formName": "webop", "formAction": "SendGatewayRequest"},
+                json=json,
+            )
 
     def get_url_details(
         self, permalink: str
