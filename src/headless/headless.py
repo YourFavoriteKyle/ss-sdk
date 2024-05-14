@@ -44,7 +44,7 @@ class Headless:
         req = requests.Request(
             operation,
             url=self.base_url,
-            params=params,
+            params=_params,
             json=json,
             headers=_headers,
             **kwargs,
