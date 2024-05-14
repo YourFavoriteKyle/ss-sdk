@@ -1,4 +1,5 @@
 import requests
+from requests import Response
 import logging
 from typing import Literal, Dict
 from urllib.parse import urlparse, parse_qs
@@ -32,7 +33,7 @@ class Headless:
         json: dict = None,
         headers: dict = None,
         **kwargs,
-    ):
+    ) -> Response:
         # TODO: Set Smartsheet-Change-Agent header
 
         _params = self.params
@@ -57,14 +58,14 @@ class Headless:
             # TODO: Log prepped request and repsonse
             pass
 
-        return r.json()
+        return r
 
     def gateway_request(
         self,
         operation: Literal["GET", "POST", "PUT", "DELETE"],
         path: str,
         service: Literal["WEB2RAPI", "DISCUSSION"],
-    ) -> object:
+    ) -> Response:
         """
         Sends a gateway request to Smartsheet.
 

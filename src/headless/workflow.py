@@ -30,6 +30,8 @@ class Workflow:
             "GET", f"/2.0/internal/navigation/metadata/{url_details["paths"][1]}", "WEB2RAPI"
         )
 
+        metadata = metadata.json()
+
         return self.headless.request(
             "POST",
             {"formName": "webop", "formAction": "GetWorkflowsBySheet"},
