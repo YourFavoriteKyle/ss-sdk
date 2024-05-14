@@ -30,18 +30,22 @@ class Headless:
         operation: Literal["GET", "POST", "PUT", "DELETE"],
         params: dict[str, str | int | bool],
         json: dict = None,
+        headers: dict = None,
         **kwargs,
     ):
         # TODO: Set Smartsheet-Change-Agent header
 
-        params.update(**self.params)
+        _params = self.params
+        _params.update(**params)
+        _headers = self.headers
+        _headers.update(**headers)
 
         req = requests.Request(
             operation,
             url=self.base_url,
             params=params,
             json=json,
-            headers=self.headers,
+            headers=_headers,
             **kwargs,
         )
 
