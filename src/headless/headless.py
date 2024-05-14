@@ -126,7 +126,7 @@ class Headless:
     def get_url_details(
         self, permalink: str
     ) -> Dict["paths" : list[str], "params" : Dict[str, str]]:
-        # TODO: Parse url to pull out the baseURL and return paths in array as well as parameters in array of tuples
+        # TODO: Error check for None or empty string permalink arg, should throw exception
         """
         Gets details from a Smartsheet URL.
 
