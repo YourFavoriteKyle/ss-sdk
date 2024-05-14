@@ -9,7 +9,7 @@ class Workflow:
     def __init__(self, headless: Headless):
         self.headless = headless
 
-    def list_workflows(self, permalink: str) -> dict:
+    def list_workflows(self, permalink: str) -> object:
         """
         List all workflows and their properties from a sheet.
 
