@@ -8,6 +8,7 @@ from playwright.sync_api import Browser
 
 from .auth import Login
 from .workflow import Workflow
+from .column import Column
 from .sheet import Sheet
 
 
@@ -26,6 +27,7 @@ class Headless:
 
         self.login = Login(self)
         self.workflows = Workflow(self)
+        self.columns = Column(self)
         self.sheets = Sheet(self)
 
     def request(
@@ -147,3 +149,32 @@ class Headless:
         params = parse_qs(url.query)
 
         return {"paths": paths, "params": params}
+
+    def get_line_in_ajax(self, ajax: str, search_term: str) -> list[str]:
+        """
+        Finds and returns a line in an ajax response.
+
+        Parameters
+        ----------
+        ajax : str
+            The ajax response from Smartsheet
+        search_term : str
+            The term to search for in the ajax response, usually a jsdSchema prop
+
+        Returns
+        -------
+        list : [str]
+
+        Raises
+        ------
+        Exception
+            If the search term is not found in the ajax response
+        """
+        ajax = ajax.split(";")
+        result = [s for s in ajax if search_term in s]
+
+        if len(result) == 0:
+            # TODO: Better error message and loggging
+            raise Exception(f"Search term not found in ajax response -> {search_term}")
+
+        return result
