@@ -1,3 +1,9 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from headless import Headless
+
 from typing import Dict
 import re
 
@@ -5,7 +11,7 @@ from playwright.sync_api import BrowserContext, expect, Request
 
 
 class Login:
-    def __init__(self, headless):
+    def __init__(self, headless: Headless):
         self.headless = headless
         self.context: BrowserContext = headless.chrome.new_context(
             **self.headless.manager.pcm.devices["Desktop Chrome"]
@@ -95,3 +101,24 @@ class Login:
     def with_google(self):
         # TODO: Implement this. Should be similar to MS but with different selectors.
         pass
+
+    def with_existing_session(self, port: int = 9222):
+        self.headless.manager.chrome = (
+            self.headless.manager.pcm.chromium.connect_over_cdp(
+                f"http://127.0.0.1:{str(port)}"
+            )
+        )
+        self.headless.chrome = self.headless.manager.chrome
+
+        ctx = self.headless.chrome.contexts[0]
+
+        ctx.on("request", lambda r: self.__handle_request(r))
+
+        p = ctx.new_page()
+
+        p.goto("https://app.smartsheet.com/b/home")
+
+        # NOTE: Repeat check from self.with_user_pass()
+        expect(p).to_have_title(re.compile(r"Home - Smartsheet\.com"), timeout=30000)
+
+        p.close()

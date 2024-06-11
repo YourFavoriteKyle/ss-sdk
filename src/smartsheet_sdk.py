@@ -56,6 +56,9 @@ class Smartsheet(PlaywrightContextManager):
             self.username = os.environ.get("SMARTSHEET_USERNAME", None)
             self.password = os.environ.get("SMARTSHEET_PASSWORD", None)
 
+        # NOTE: All playwright functions should really be moved into the headless class.
+        # NOTE: The Smartsheet class should just be a wrapper to initialize and access both the WebAPI and the API
+
         # Run a subprocess to update and install drivers since it does not
         # seem there is a way to do it within the script process
         subprocess.run(["playwright", "install", "chromium"])

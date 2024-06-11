@@ -1,8 +1,15 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from smartsheet_sdk import Smartsheet
+
 import requests
 from requests import Response
 import logging
 from typing import Literal, Dict
 from urllib.parse import urlparse, parse_qs
+import re
 
 from playwright.sync_api import Browser
 
@@ -13,7 +20,7 @@ from .sheet import Sheet
 
 
 class Headless:
-    def __init__(self, manager):
+    def __init__(self, manager: Smartsheet):
         self.manager = manager
         self.chrome: Browser = manager.chrome
         self.base_url = "https://app.smartsheet.com/b/home"
@@ -24,6 +31,8 @@ class Headless:
         }
         # NOTE: ss_v param is required for every request, but change frequently. Set in auth module.
         self.params = {"to": "68000"}
+
+        self.__session = requests.Session()
 
         self.login = Login(self)
         self.workflows = Workflow(self)
@@ -36,13 +45,14 @@ class Headless:
         params: dict[str, str | int | bool] = {},
         json: dict = None,
         headers: dict = {},
+        stream: bool = False,
         **kwargs,
     ) -> Response:
         # TODO: Set Smartsheet-Change-Agent header
 
-        _params = self.params
+        _params = self.params.copy()
         _params.update(**params)
-        _headers = self.headers
+        _headers = self.headers.copy()
         _headers.update(**headers)
 
         req = requests.Request(
@@ -56,7 +66,7 @@ class Headless:
 
         prepped = req.prepare()
 
-        r = requests.Session().send(prepped)
+        r = self.__session.send(prepped, stream=stream)
 
         if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
             # TODO: Log prepped request and repsonse
@@ -170,7 +180,7 @@ class Headless:
         Exception
             If the search term is not found in the ajax response
         """
-        ajax = ajax.split(";")
+        ajax = re.split(r"(?!\B'[^']*);(?![^']*'\B)", ajax)
         result = [s for s in ajax if search_term in s]
 
         if len(result) == 0:

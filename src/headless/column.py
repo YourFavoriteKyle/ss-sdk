@@ -4,7 +4,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .headless import Headless
 
-import re
+import csv
+from io import StringIO
 
 
 class Column:
@@ -77,36 +78,27 @@ class Column:
                 "Accept": "*/*",
             },
             data=url_encoded_data,
+            stream=True,
         )
 
         # NOTE: Slice off last two char since it is breaking things
         grid_column_def = self.headless.get_line_in_ajax(
             r.text, "TABLE_INDEX_GRIDCOLUMNDEF"
-        )[0]
-        grid_column_def = grid_column_def.replace(
+        )
+        grid_column_def = grid_column_def[0].replace(
             "\r\n\r\njsdSchema.ajaxMegaBulkRecordInsert([jsdSchema.TABLE_INDEX_GRIDCOLUMNDEF,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73],",
             "",
         )[:-1]
 
-        column_def = self._split_with_quoted_commas(grid_column_def)
+        # NOTE: Now it should just be a standard csv format. Use the built in csv library, parse it down into an array.
+        reader = csv.reader(
+            StringIO(grid_column_def), quotechar="'", escapechar="\\", delimiter=","
+        )
+        column_def = list(reader)
+
         # NOTE: Split the line into lists of 25 elements for each column. Column defs seem to always be 25 defs
-        column_def = [column_def[x : x + 25] for x in range(0, len(column_def), 25)]
+        column_def = [
+            column_def[0][x : x + 25] for x in range(0, len(column_def[0]), 25)
+        ]
 
         return column_def
-
-    # NOTE: Should this function be here? Maybe it should be in headless for untility use.
-    def _split_with_quoted_commas(self, text):
-        """
-        Splits a string into an array using commas as delimiters, ignoring commas
-        within single quotes.
-
-        Args:
-            text : The string to split.
-
-        Returns:
-            A list of the split elements.
-        """
-        split = re.split(r"(?!\B'[^']*),(?![^']*'\B)", text)
-
-        # Extra quotes are added, so clean that up
-        return [item.replace("'", "") for item in split]
