@@ -12,6 +12,8 @@ from urllib.parse import urlparse, parse_qs
 import re
 
 from playwright.sync_api import Browser
+from ratelimit import limits, sleep_and_retry
+from datetime import timedelta
 
 from .auth import Login
 from .workflow import Workflow
@@ -39,6 +41,10 @@ class Headless:
         self.columns = Column(self)
         self.sheets = Sheet(self)
 
+    # TODO: Add exponential backoff strategy here so it does not infinitely retry
+    # @on_exception(backoff_retry, RateLimitException, max_tries=8)
+    @sleep_and_retry
+    @limits(calls=300, period=60)
     def request(
         self,
         operation: Literal["GET", "POST", "PUT", "DELETE"],
